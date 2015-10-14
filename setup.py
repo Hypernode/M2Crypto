@@ -58,6 +58,10 @@ class _M2CryptoBuildExt(build_ext.build_ext):
         openssl_include_dir = os.path.join(self.openssl, 'include')
         openssl_library_dir = os.path.join(self.openssl, 'lib')
 
+        if (platform.linux_distribution()[0] in ['Ubuntu', 'Debian'] and 
+                platform.architecture()[0] == '64bit'):
+            self.include_dirs.append(os.path.join(openssl_include_dir, 'x86_64-linux-gnu'))
+
         self.swig_opts = ['-I%s' % i for i in self.include_dirs +
                           [openssl_include_dir]]
         self.swig_opts.append('-includeall')
@@ -69,8 +73,12 @@ class _M2CryptoBuildExt(build_ext.build_ext):
         # building a single extension with a known path; a proper patch to
         # distutils would be in the run phase, when extension name and path are
         # known.
+        outdir = os.path.join(self.build_lib, 'M2Crypto')
         self.swig_opts.append('-outdir')
-        self.swig_opts.append(os.path.join(self.build_lib, 'M2Crypto'))
+        self.swig_opts.append(outdir)
+
+        if not os.path.exists(outdir):
+            os.makedirs(outdir)
 
         # Fedora does hat tricks.
         if platform.linux_distribution()[0] in ['Fedora', 'CentOS']:
